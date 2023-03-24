@@ -88,10 +88,21 @@ The tutorial goes over the changes made that you can will implement into your ch
 
 In strategy.sol
 
-- import OZ library
+- import OZ library for math // TODO: not sure we need this anymore actually w/ solidity v8.0
 - import CDAI as a constant
-   - import ICToken.sol because we are building a compound-DAI strategy.
+   - import ICToken.sol because we are building a compound-DAI strategy. // TODO: add a note stating that this is done through going and getting the interface itself from the repo itself (Include the interface itself here so the tutorial doesn't break but point to where you got it from so students understand how to get interfaces for projets).
     - CDAI will be the pool we're deploying into.
+
+Line of code:
+
+````
+import "@openzeppelin/contracts/utils/math/Math.sol";
+
+import "./interfaces/Compound/ICToken.sol";
+
+// inside the contract itself (below)
+ICToken internal constant cDAI = ICToken(0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643);
+````
 
 CToken interface details:
 
@@ -106,8 +117,164 @@ exchangeRateStored():
 
 ### code
 
-We need to first approve the amount of DAI that we are putting into this CDAI pool.
+In the constructor:
+
+We need to first approve the amount of DAI that we are putting into this CDAI pool. So we're giving the CDAI pool permission to handle our tokens (DAI).
 
 ```
 want.approve(address(cDAI), type(uint256).max)
 ```
+
+Let's name the strategy. There is a typical convention as Facu had pointed out in past yearn strategy tutorial videos.
+
+### `estimatedTotalAssets()` Implementation
+
+Cool, now we'll go into the next typical function, `estimatedTotalAssets()`
+
+This function is called throughout the general "flow" of a strategy, in particular for accounting purposes. We need to obtain an estimate of total assets in the form of `wantToken`. Write up the implementation for this function so it accounts for the `wantToken` within the strategy itself AND the `wantToken` of the assets within the strategy itself. _hint: don't forget to check if there are any scaling factors applied in your conversions._
+
+<details markdown='1'><summary>👩🏽‍🏫 Solution Code</summary>
+
+As you can see, the exchangeRateStored() is **scaled up** by a factor of 18, so we must normalize the exchange rate by a factor of 18. Here you can see the `estimatedTotalAssets` are the sum of: `wantToken` in the strategy, `assets` converted to `wantToken` and scaled down properly by `1e18`
+```
+return want.balanceOf(address(this)) + cDAI.balanceOf(address(this)) * cDAI.exchangeRateStored() / 1e18; 
+```
+
+</details>
+
+### `prepareReturn()` Implementation
+
+Great! Now we're going to look at the `prepareReturn()` function. It does two things:
+
+1. Prepares `wantToken` to be returned
+2. Takes care of accounting (profits and losses since last harvest), and specifies how much debt it can pay back of the `debtOutstanding` in the form of the return param `debtPayment`
+
+
+
+The standard flow of things is to:
+
+- calculate total assets and total debt in this strategy. We'll use the previous `estimatedTotalAssets()` function for the former && we can use `totalDebt` function from yearn. 
+
+Write the implementation logic for this function such that it will return the proper params; `_profit, _loss, _debtPayment`
+
+*Note that all will be in `wantToken`
+
+As well, add in a stubbed out function call to a helper function called `withdrawSome()`. This helper function will eventually take care of liquidating enough `wantToken` already deployed in the strategy (CDAI pool) and attempt to get enough to repay the debt being requested. More on this helper function later though.
+
+_hint: you'll want to write conditional logic for when there is a profit vs when there is not_
+
+<details markdown='1'><summary>👩🏽‍🏫 Solution Code</summary>
+
+```
+uint256 _totalAssets = estimatedTotalAssets();
+uint256 _totalDebt = vault.strategies(address(this)).totalDebt;
+
+if(_totalAssets >= _totalDebt) {
+    _profit = _totalAssets - _totalDebt;
+    _loss = 0;
+} else {
+    _profit =0;
+    _loss = _totalDebt - _totalAssets;
+}
+
+withdrawSome(_debtOutstanding + _profit); // _profit needs to be liquid in wantToken, so `withdrawSome()` takes care of that
+
+uint256 _liquidWant = want.balanceOf(address(this));
+
+// enough to pay profit (partial or full) only
+if(_liquidWant <= profit) {
+    _profit = _liquidWant;
+    _debtPayment = 0;
+// enough to pay for all profit and _debtOutstanding (partial or full)
+
+}
+```
+
+</details>
+
+### `adjustPosition()` Implementation
+
+The focus of this function is to invest excess `wantToken` into the respective strategy. In this case we're investing any excess DAI into the CDAI pool.
+
+Write the implementation logic such that it invests any excess DAI, based on the `debtOutstanding` param, into the CDAI pool.
+
+_hint: make sure that there are checks implemented to ensure that the excess DAI was truly invested (see ICToken interface return values 😉)_
+
+<details markdown='1'><summary>👩🏽‍🏫 Solution Code</summary>
+
+```
+uint256 _daiBal = want.balanceOf(address(this));
+
+if(_daiBal > _debtOutstanding) {
+    uint256 _excessDai = _daiBal - _debtOutstanding;
+// CToken function mint() gives back a uint256 == 0 if it is successful.
+    uint256 _status = cDAI.mint(_excessDai);
+    assert(_status == 0);
+}
+
+```
+
+</details>
+
+### `withdrawSome()` Implementation
+
+Recall from before that this was the stubbed out function to actually liquidate CDAI to DAI (`wantToken`) as needed.
+
+<details markdown='1'><summary>👩🏽‍🏫 Solution Code</summary>
+
+Recall: passed in param to this function is in DAI, and we need to convert that to CDAI because `redeem` takes a CDAI amount. So multiply by 1e18 and divide by exchange rate!
+
+```
+function withdrawSome(uint256 _amountNeeded) internal {
+    uint256 _cDaiToBurn =Math.min(_amountNeeded * 1e18 / cDAI.exchangeRateStored());
+
+    uint256 _status = cDAI.redeem(_cDaiToBurn);
+    assert(_status == 0);
+}   
+```
+
+</details>
+
+Nice, now we'll move onto `liquidatePosition()`
+
+### `liquidatePosition()` Implementation
+
+Remember that this is called during the flow "withdraw"
+
+First calculate how much DAIBal we have already. If we have enough daiBal to pay things back then we'll return the amountNeeded accordingly - we'd report 0 loss then.
+
+Otherwise we're going to call withdrawSome(), get more DAI from our strategy, and then check if we have enough.
+
+<details markdown='1'><summary>👩🏽‍🏫 Solution Code</summary>
+
+```
+function liquidatePosition(uint256 _amountNeeded) internal override returns (uint256 _liquidateAmount, uint256 _loss) {
+    uint256 _daiBal = want.balanceOf(address(this));
+
+    if (_daiBal >= _amountNeeded) {
+        return (_amountNeeded, 0);
+    }
+
+    withdrawSome(_amountNeeded);
+
+    _daiBal = want.balanceOf(address(this));
+    if (_amountNeeded > _daiBal) {
+        _liquidatedAmount = _daiBal;
+        _loss = _amountNeeded - _daiBal;
+    } else {
+        _liquidateAmount = _amountNeeded;
+    }
+}
+```
+
+</details>
+
+At this point we have all the basic functions written out! Congrats!
+
+Now we'll check that your code actually works. Luckily we're leveraging the working foundry mix from Yearn protocol themselves. Part of their developer relations side of things is to onboard new strategists easily by having them only need to worry about risk vectors associated to their strategy itself. They don't need to worry about the harvest flows, interactions with the vaults, etc. typically! So that means that running `make test` will run the typical integrations tests that are needed to ensure a good working strategy with the rest of the yearn v2 vaults architecture is sound!
+
+_NOTE: `make test` is just a script that ultimately runs a series of `forge test` and you can dig into it more by investigating the yearn foundry mix repo itself with its `package.json`_
+
+
+
+---
