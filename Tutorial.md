@@ -7,35 +7,30 @@ This challenge is focused on guiding students through the following:
 - What a Yearn Strategy is
 - The typical ins and outs of a Yearn strategy to be aware of that Yearn v2 Vaults take with their actual strategies
 - The approach taken to writing this yearn strategy (how @steve0xp got into writing this yearn strategy where he is focused on getting it to ape.tax)
-- Writing this yearn strategy and getting experience dealing with some types of intricacies that come up when writing yearn strategies, and strategies in general
+- Writing this yearn strategy and getting experience dealing with some types of the basics.
 
-### DeFi Sub-Branch Context
-
-This challenge is part of the DeFi Sub-Branch, where students are invited into writing smart contracts that incorporate actual DeFi protocols. The sub-branch projects are ever-expanding as DeFi is too. The goal of the Defi sub-branch projects/tutorials are to provide students tutorials that foster self-learning in actual DeFi protocols, guide you through some of the basics of integrating with specific protocols, and other useful tips to increase competence to be potentially hireable as an intermediate developer. 
-
-Teams are looking for developers with **real** experience; mainnet/real contracts deployed, battle tested, TVL locked in, audited, etc. These tutorials won't give you smart contracts to deploy and test outright as your own, but give you the framework for possible starting points for your own ideas! Be original 😉
-
-**Students taking on this challenge will be expected to embrace self-learning** since tying into DeFi protocols and actual professional crypto projects do not guide developers, step-by-step. If you are new to trying to actually plug into a professional project, no worries! We'll touch on some helpful tips as you sort out what the 'norm' is when going through this process. These tips will be specific to each protocol that we are integrating into and learning about.
-
-### Steps taken when Starting this Yearn Strategy Itself
-A typical professional crypto project will have developer docs to help onboard devs into the respective tech stack. The approach that was taken when writing this yearn strategy was to read through the docs, and jump in to the communication channels offered from the protocol. IN this case it was the Yearn Discord && [Yearn General Telegram Group Chat](https://t.me/yearnfinance) && eventual the gated Telegram group chat, YFI Boarding School.
-
-**@steve0xp wrote threads outlining his journey writing this Yearn Strategy, we heavily recommend checking out the respective thread highlighted through different parts of this tutorial.** We'll list them out all here now though for easier reference. These offer a general landscape of this tutorial's contents. We will use his journey && strategy as the basis of this tutorial.
-
-**DRAFT THREADS - TODO: finalize these links once the threads are posted.**
-
-1. [Getting started, conceptualization && initialization](https://typefully.com/t/X7kgQ4J)
-2. [Troubleshooting with other devs && discussions](https://typefully.com/t/7viHbCb)
-3. [Q/C through writing unit tests](tbd)
-4. [Deployment && getting actual dollars into the strategy from yearn vaults](tbd)
-
-## Yearn Strategy Intro Challenge
-
-This is the first part of 2 challenges focused on writing Yearn strategies.
+**This is the first part of 2 challenges focused on writing Yearn strategies.**
 
 1. First challenge - create a super simple strategy to get used to the ins and outs of the `harvest` tx flow.
 2. Second challenge - create a strategy atop of Mellow Protocol && Gearbox Protocol w/ tests!
 
+---
+### **🚨 DeFi Sub-Branch Context / Disclaimers**
+
+This challenge is part of the DeFi Sub-Branch, where students are invited into writing smart contracts that incorporate actual DeFi protocols. The sub-branch projects are ever-expanding as DeFi is too. The goal of the Defi sub-branch projects/tutorials are to provide students tutorials that foster self-learning in actual DeFi protocols, guide you through some of the basics of integrating with specific protocols, and other useful tips to increase competence to be potentially hireable as an intermediate developer. 
+
+> ❗️ NOTE: **Students taking on this challenge will be expected to embrace self-learning AND it is recommended that they have completed all beginner SRE challenges or show competency elsewhere.** 
+
+<details markdown='1'><summary>👩🏽‍🏫 More Disclaimers </summary>
+
+This requirement is simply because tying into other protocols is powerful, and with that comes a lot of responsibility when deploying contracts that may end up holding people's actual funds. These tutorials don't do that but they start to show paths for people to build possible fund-holding code. It is key to know what you are doing.
+
+As well, self-learning is required because tying into DeFi protocols and actual professional crypto projects do not guide developers, step-by-step. If you are new to trying to actually plug into a professional project, no worries! We'll touch on some helpful tips as you sort out what the 'norm' is when going through this process. These tips will be specific to each protocol that we are integrating into and learning about.
+
+</details>
+
+---
+## Yearn Strategy Intro Challenge
 ### Simple Yearn Strategy
 
 To kick things off, we'll start by going over the yearn strategy tutorial that Yearn core dev, @cdalton, has gone over in this video. Here he covers making a yearn strategy where we pull DAI from the DAIVault in Yearn and deploy it in a lending pool in Compound. If you're not familiar with Compound, they are an OG lending protocol where users can be lenders and borrowers of whitelisted tokens (deemed legitimate through Compound governance).
@@ -278,3 +273,28 @@ _NOTE: `make test` is just a script that ultimately runs a series of `forge test
 
 
 ---
+## References and Context for Those Interested in How this Tutorial was Made
+
+The DeFi Level 3000 repo is always growing. If you are interested in contributing by writing tutorials that educating others in integrating with a different protocol please open an issue, or even fork the repo and submit a PR or draft PR!
+
+For inspiration and/or reference, we've listed out how this strategy came to be, it was very organic!
+### **💡🚶🏻‍♂️ Steps taken when Starting this Yearn Strategy Itself**
+
+A typical professional crypto project will have developer docs to help onboard devs into the respective tech stack. The approach that was taken when writing this yearn strategy was to read through the docs, and jump in to the communication channels offered from the protocol. 
+
+@steve0xp simply wanted to learn how to write yearn strategies, and was fortunate enough to have met some yearn contributors at past conferences and throughout online async communications (being part of their discord, writing threads on their project, etc.).
+
+In the case of getting involved with writing strategies, he simply went onto the Yearn Discord, chatted about building yearn strategies, and was pointed to the [Yearn General Telegram Group Chat](https://t.me/yearnfinance) && eventually the gated Telegram group chat, YFI Boarding School. Here he met other strategists, and core strategists who actually deployed strategies with real funds in them.
+
+> **@steve0xp wrote threads outlining his journey writing this Yearn Strategy, we heavily recommend checking out the respective thread highlighted through different parts of this tutorial.**
+
+>We'll list them out all here now though for easier reference. These offer a general landscape of this tutorial's contents. We will use his journey && strategy as the basis of this tutorial.
+
+<details markdown='1'><summary>👩🏽‍🏫 DRAFT THREADS - TODO: finalize these links once the threads are posted. </summary>
+
+1. [Getting started, conceptualization && initialization](https://typefully.com/t/X7kgQ4J)
+2. [Troubleshooting with other devs && discussions](https://typefully.com/t/7viHbCb)
+3. [Q/C through writing unit tests](tbd)
+4. [Deployment && getting actual dollars into the strategy from yearn vaults](tbd)
+
+</details>
